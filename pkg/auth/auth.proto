@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package proto_definitions;
 
-option go_package = "github.com/dankru/proto-definitions";
+option go_package = "github.com/dankru/proto-definitions/pkg/auth";
 
 message UserData {
   string id = 1;

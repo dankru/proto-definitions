@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v5.29.2
-// source: auth/auth.proto
+// source: pkg/auth/auth.proto
 
-package proto_definitions
+package auth
 
 import (
 	context "context"
@@ -20,6 +20,8 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	TokenService_GenerateToken_FullMethodName = "/proto_definitions.TokenService/GenerateToken"
+	TokenService_ParseToken_FullMethodName    = "/proto_definitions.TokenService/ParseToken"
+	TokenService_RefreshToken_FullMethodName  = "/proto_definitions.TokenService/RefreshToken"
 )
 
 // TokenServiceClient is the client API for TokenService service.
@@ -27,6 +29,8 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type TokenServiceClient interface {
 	GenerateToken(ctx context.Context, in *UserData, opts ...grpc.CallOption) (*JWT, error)
+	ParseToken(ctx context.Context, in *TokenRequest, opts ...grpc.CallOption) (*UserData, error)
+	RefreshToken(ctx context.Context, in *TokenRequest, opts ...grpc.CallOption) (*JWT, error)
 }
 
 type tokenServiceClient struct {
@@ -47,11 +51,33 @@ func (c *tokenServiceClient) GenerateToken(ctx context.Context, in *UserData, op
 	return out, nil
 }
 
+func (c *tokenServiceClient) ParseToken(ctx context.Context, in *TokenRequest, opts ...grpc.CallOption) (*UserData, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UserData)
+	err := c.cc.Invoke(ctx, TokenService_ParseToken_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tokenServiceClient) RefreshToken(ctx context.Context, in *TokenRequest, opts ...grpc.CallOption) (*JWT, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(JWT)
+	err := c.cc.Invoke(ctx, TokenService_RefreshToken_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TokenServiceServer is the server API for TokenService service.
 // All implementations must embed UnimplementedTokenServiceServer
 // for forward compatibility.
 type TokenServiceServer interface {
 	GenerateToken(context.Context, *UserData) (*JWT, error)
+	ParseToken(context.Context, *TokenRequest) (*UserData, error)
+	RefreshToken(context.Context, *TokenRequest) (*JWT, error)
 	mustEmbedUnimplementedTokenServiceServer()
 }
 
@@ -64,6 +90,12 @@ type UnimplementedTokenServiceServer struct{}
 
 func (UnimplementedTokenServiceServer) GenerateToken(context.Context, *UserData) (*JWT, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GenerateToken not implemented")
+}
+func (UnimplementedTokenServiceServer) ParseToken(context.Context, *TokenRequest) (*UserData, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ParseToken not implemented")
+}
+func (UnimplementedTokenServiceServer) RefreshToken(context.Context, *TokenRequest) (*JWT, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RefreshToken not implemented")
 }
 func (UnimplementedTokenServiceServer) mustEmbedUnimplementedTokenServiceServer() {}
 func (UnimplementedTokenServiceServer) testEmbeddedByValue()                      {}
@@ -104,6 +136,42 @@ func _TokenService_GenerateToken_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TokenService_ParseToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TokenServiceServer).ParseToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TokenService_ParseToken_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TokenServiceServer).ParseToken(ctx, req.(*TokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TokenService_RefreshToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TokenServiceServer).RefreshToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TokenService_RefreshToken_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TokenServiceServer).RefreshToken(ctx, req.(*TokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // TokenService_ServiceDesc is the grpc.ServiceDesc for TokenService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -115,7 +183,15 @@ var TokenService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GenerateToken",
 			Handler:    _TokenService_GenerateToken_Handler,
 		},
+		{
+			MethodName: "ParseToken",
+			Handler:    _TokenService_ParseToken_Handler,
+		},
+		{
+			MethodName: "RefreshToken",
+			Handler:    _TokenService_RefreshToken_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "auth/auth.proto",
+	Metadata: "pkg/auth/auth.proto",
 }
